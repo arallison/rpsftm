@@ -4,21 +4,22 @@
 \alias{rpsftm}
 \title{Rank Preserving Sturctural Failure Time Model}
 \usage{
-rpsftm(time, censor_time, rx, arm, data, adjustors = NULL, test = survdiff,
-  lowphi = -10, hiphi = 10, alpha = 0.05, ...)
+rpsftm(time, censor_time, rx, arm, data, formula = NULL, test = survdiff,
+  lowphi = -10, hiphi = 10, alpha = 0.05, Recensor = TRUE,
+  Autoswitch = TRUE, ...)
 }
 \arguments{
 \item{time}{the observed failure or censoring time.}
 
-\item{censor_time}{the theoretical censoring time, either observed or set after Time.}
+\item{censor_time}{the theoretical censoring time, either observed or set after time.}
 
-\item{rx}{the proportion of Time spent on treatment}
+\item{rx}{the proportion of time spent on treatment}
 
-\item{arm}{the randomisation that is independent of the recensored survival times}
+\item{arm}{the randomised arm. Either a numerical indicator, with 0 as the placebo, or a factor with the lowest level as placebo.}
 
-\item{data}{a data.frame object containing the variables}
+\item{data}{the data set that contains the variables.}
 
-\item{adjustors}{a forumula object of covariates to adjust for: \code{~strata(A)+B*C}}
+\item{formula}{a forumula object of covariates to adjust for: \code{~strata(A)+B*C}}
 
 \item{test}{the survival regression function to calculate the z-statistic: survdiff, coxph, survreg}
 
@@ -28,7 +29,9 @@ rpsftm(time, censor_time, rx, arm, data, adjustors = NULL, test = survdiff,
 
 \item{alpha}{the significance level used to calculate confidence intervals}
 
-\item{target}{the value to subtract off from the z-statistic}
+\item{Recensor}{a logical to use recensoring if set to TRUE. Default is TRUE.}
+
+\item{Autoswitch}{a logical to autodetect cases of no switching. Default is TRUE}
 
 \item{\code{...}}{arguments to supply to the test function.}
 }

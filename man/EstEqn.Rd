@@ -4,8 +4,8 @@
 \alias{EstEqn}
 \title{Estimating Equations for \code{rpsftm()}}
 \usage{
-EstEqn(phi, time, censor_time, rx, data, armName, formula, target = 0,
-  test = "survdiff", ...)
+EstEqn(phi, time, censor_time, rx, data, arm, formula, target = 0,
+  test = "survdiff", Recensor, Autoswitch, ...)
 }
 \arguments{
 \item{phi}{the parameter that measures how more rapidly the lifetime is expended under treatment}
@@ -16,15 +16,19 @@ EstEqn(phi, time, censor_time, rx, data, armName, formula, target = 0,
 
 \item{rx}{the proportion of time spent on treatment}
 
-\item{data}{a data.frame object containing the variables}
+\item{data}{the data set that contains the variables.}
+
+\item{arm}{the randomised arm. Either a numerical indicator, with 0 as the placebo, or a factor with the lowest level as placebo.}
+
+\item{formula}{a forumula object of covariates to adjust for: \code{~strata(A)+B*C}}
 
 \item{target}{the value to subtract off from the z-statistic}
 
 \item{test}{the survival regression function to calculate the z-statistic: survdiff, coxph, survreg}
 
-\item{arm}{the randomisation that is independent of the recensored survival times}
+\item{Recensor}{a logical to use recensoring if set to TRUE. Default is TRUE.}
 
-\item{adjustors}{a forumula object of covariates to adjust for: \code{~strata(A)+B*C}}
+\item{Autoswitch}{a logical to autodetect cases of no switching. Default is TRUE}
 
 \item{\code{...}}{arguments to supply to the test function.}
 }

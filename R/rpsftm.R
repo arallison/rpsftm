@@ -3,14 +3,7 @@
 #'@export
 #'@title Rank Preserving Sturctural Failure Time Model
 #'@name rpsftm
-#' @param time the observed failure or censoring time.
-#' @param censor_time the theoretical censoring time, either observed or set after Time.
-#' @param rx the proportion of Time spent on treatment
-#' @param data a data.frame object containing the variables 
-#' @param arm the randomisation that is independent of the recensored survival times
-#' @param adjustors a forumula object of covariates to adjust for: \code{~strata(A)+B*C}
-#' @param target the value to subtract off from the z-statistic 
-#' @param test the survival regression function to calculate the z-statistic: survdiff, coxph, survreg
+#'@inheritParams EstEqn
 #' @param lowphi the lower limit of the range to search for the causal parameter
 #' @param hiphi the upper limit of the range to search for the causal paramater
 #' @param alpha the significance level used to calculate confidence intervals
@@ -28,15 +21,17 @@
 #' @importFrom survival strata cluster
 
 
-rpsftm=function(time, censor_time, rx, arm,data, adjustors=NULL, 
-                test=survdiff, lowphi=-10,hiphi=10, alpha=0.05,...){
+rpsftm=function(time, censor_time, rx, arm,data, 
+                formula=NULL, test=survdiff, 
+                lowphi=-10,hiphi=10, alpha=0.05,
+                Recensor=TRUE,Autoswitch=TRUE, ...){
   
   #create formula for fitting, and to feed into model.frame()
-  if(is.null(adjustors)){
-    adjustors=as.formula("~1")
+  if(is.null(formula)){
+    formula=as.formula("~1")
   }
   update_formula=paste("~.",substitute(arm),sep="+")
-  fit_formula=update.formula(adjustors, update_formula)
+  fit_formula=update.formula(formula, update_formula)
   #Need these two lines to be able to use strata and cluster
   fit_formula=as.character(fit_formula)[2]
   fit_formula=reformulate(fit_formula)
@@ -53,23 +48,19 @@ rpsftm=function(time, censor_time, rx, arm,data, adjustors=NULL,
   #check or handle missing data.
   
   
-  #Work out argument passing for uniroot. Why is test= different to the others???
-  #convert test argument into a string
-  
-  #Seems to be the only way to pass these as actual variables into the uniroot() function
-  
   test=deparse(substitute(test))
-  time=df[,deparse(substitute(time))]
-  rx=df[,deparse(substitute(rx))]
-  censor_time=df[,deparse(substitute(censor_time))]
-  armName=deparse(substitute(arm))
+  time=deparse(substitute(time))
+  rx=deparse(substitute(rx))
+  censor_time=deparse(substitute(censor_time))
+  arm=deparse(substitute(arm))
   
   #solve to find the value of phi that gives the root to z=0, and the limits of the CI.
   
   root=function(target){
     uniroot(EstEqn, c(lowphi,hiphi), 
             time=time, censor_time=censor_time, rx=rx, 
-            data=df, armName=armName, formula=fit_formula,target=target,test=test,...=...)
+            data=df, arm=arm, formula=fit_formula,target=target,
+            test=test,Recensor=Recensor, Autoswitch=Autoswitch, ...=...)
   }
   ans=root(0)
   lower=root(qnorm(1-alpha/2))
@@ -80,11 +71,12 @@ rpsftm=function(time, censor_time, rx, arm,data, adjustors=NULL,
   phiHat=ans$root
   
   #Used in the plot function - simple KM curves
-  Sstar=recensor(phiHat, time, censor_time,rx)
+  Sstar=recensor(phiHat, df[,time], df[,censor_time],df[,rx],df[,arm],Recensor,Autoswitch)
   fit=survival::survfit(update(fit_formula, Sstar~.), df)
   
   #provide the full fitted model for print and summary methods
-  regression <- EstEqn(phiHat,time,censor_time,rx, df, armName, fit_formula, target=0, test=test,...)
+  regression <- EstEqn(phiHat,time,censor_time,rx, df, arm, fit_formula, 
+                       target=0,test=test,Recensor=Recensor, Autoswitch=Autoswitch,...)
  
   
   value=list(phi=phiHat, 
